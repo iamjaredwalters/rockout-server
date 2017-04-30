@@ -1,0 +1,38 @@
+{
+  "name": "rockout-server",
+  "version": "0.0.1",
+  "description": "Serves Rock Out React App",
+  "author": "Jared Walters",
+  "main": "index.js",
+  "scripts": {
+    "dev": "NODE_ENV=development nodemon ./src/server",
+    "lint": "eslint ./src"
+  },
+  "dependencies": {
+    "babel-polyfill": "6.23.0",
+    "dotenv": "4.0.0",
+    "express": "4.15.2"
+  },
+  "devDependencies": {
+    "babel-cli": "6.24.1",
+    "babel-core": "6.24.1",
+    "babel-eslint": "7.2.3",
+    "babel-plugin-transform-object-rest-spread": "6.23.0",
+    "babel-preset-env": "1.4.0",
+    "babel-register": "6.24.1",
+    "eslint": "3.19.0",
+    "eslint-config-airbnb": "14.1.0",
+    "eslint-plugin-import": "2.2.0",
+    "eslint-plugin-jsx-a11y": "4.0.0",
+    "eslint-plugin-react": "6.10.3",
+    "jest": "19.0.2",
+    "nodemon": "1.11.0"
+  },
+  "jest": {
+    "setupFiles": [
+      "<rootDir>/setup_jest.js"
+    ],
+    "testEnvironment": "node",
+    "verbose": false
+  }
+}
