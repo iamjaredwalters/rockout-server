@@ -42,18 +42,8 @@ MongoClient.connect(config.db, (err, db) => {
         app.use(express.static('client/build'));
     }
 
-    app.get('/test', (err, res) => {
-        console.log('test reached');
-        // res.status(201).send('success!');
-        // res.sendFile(__dirname + '/views/login.html');
-    });
-
-    app.get('/redirect', (err, res) => {
-        console.log('redir reached');
-    });
-
     app.get('/login', (err, res) => {
-        console.log('login');
+        console.log('Failed. Redirected to login');
     });
 
     // GET /auth/spotify
@@ -71,18 +61,18 @@ MongoClient.connect(config.db, (err, db) => {
             // function will not be called.
         });
 
-    // // GET /auth/spotify/callback
-    // //   Use passport.authenticate() as route middleware to authenticate the
-    // //   request. If authentication fails, the user will be redirected back to the
-    // //   login page. Otherwise, the primary route function function will be called,
-    // //   which, in this example, will redirect the user to the home page.
-    app.get('/auth/spotify/callback',
+    // GET /auth/spotify/callback
+    // Use passport.authenticate() as route middleware to authenticate the
+    // request. If authentication fails, the user will be redirected back to the
+    // login page. Otherwise, the primary route function function will be called,
+    // which, in this example, will redirect the user to the home page.
+    app.get('/callback',
         passport.authenticate('spotify', { failureRedirect: '/login' }),
         (req, res) => {
             console.log('Auth Success!');
             res.redirect('/');
         });
-    //
+
     // app.get('/logout', function(req, res){
     //     req.logout();
     //     res.redirect('/');
