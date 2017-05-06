@@ -27,6 +27,7 @@ app.use(session({
     saveUninitialized: true,
     cookie: { secure: true },
 }));
+
 // Initialize Passport!  Also use passport.session() middleware, to support
 // persistent login sessions (recommended).
 app.use(passport.initialize());
