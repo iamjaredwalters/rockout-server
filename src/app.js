@@ -33,6 +33,7 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session());
 
+
 // Express only serves static assets in production
 if (process.env.NODE_ENV === 'production') {
     app.use(express.static('client/build'));
@@ -62,11 +63,34 @@ app.get('/auth/spotify',
 // request. If authentication fails, the user will be redirected back to the
 // login page. Otherwise, the primary route function function will be called,
 // which, in this example, will redirect the user to the home page.
-app.get('/callback',
+app.get('/auth/spotify/callback',
     passport.authenticate('spotify', { failureRedirect: '/login' }),
     (req, res) => {
         console.log('Auth Success!');
-        res.redirect('/');
+
+        /**
+         * @TODO: User save should be moved into its own abstraction and (possibly) used by ./auth/passport.js to save
+         */
+        // Store user on success
+        MongoClient.connect(config.mongodb.db)
+            .then((db) => {
+                console.log('Successfully connected to Mongodb');
+                db.collection('users').insertOne({ ...req.user._json })
+                    .then((res) => {
+                        console.log('User inserted successfully');
+                    })
+                    .catch((e) => {
+                        console.log(`User unsuccessfully inserted: ${e}`);
+                    });
+            })
+            .catch((e) => {
+                console.log(`Error connecting to db: ${e}`);
+            });
+
+        res.json({
+            type: 'SUCCESS',
+            data: { ...req.user._json },
+        });
     });
 
 // app.get('/logout', function(req, res){
@@ -75,13 +99,6 @@ app.get('/callback',
 // });
 
 app.listen(app.get('port'), () => {
-    // Connect to mongo
-    MongoClient.connect(config.db, (err, db) => {
-        console.log('Mongodb ready');
-
-        if (err) throw err;
-    });
-
     console.log(`Find the server at: http://localhost:${app.get('port')}/`); // eslint-disable-line no-console
 });
 

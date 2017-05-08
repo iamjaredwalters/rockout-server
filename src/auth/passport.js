@@ -22,11 +22,12 @@ passport.deserializeUser((obj, done) => {
 passport.use(new SpotifyStrategy.Strategy({
     clientID: config.spotify.clientKey,
     clientSecret: config.spotify.clientSecret,
-    callbackURL: `http://localhost:${config.port}/callback`,
+    callbackURL: `http://localhost:${config.port}/auth/spotify/callback`,
 },
     (accessToken, refreshToken, profile, done) => {
-        // asynchronous verification, for effect...
         console.log('User found!', profile);
+
+        // asynchronous verification, for effect...
         process.nextTick(() => {
             // To keep the example simple, the user's spotify profile is returned to
             // represent the logged-in user. In a typical application, you would want
