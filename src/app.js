@@ -7,12 +7,28 @@ import session from 'express-session';
 import methodOverride from 'method-override';
 import passport from 'passport';
 import MongoClient from 'mongodb';
-
+import connectMongoSession from 'connect-mongodb-session';
 import './auth/passport';
-
 import config from './config'; // config handles env configs
 
 const app = express();
+
+const MongoStore = connectMongoSession(session);
+
+const store = new MongoStore(
+    {
+        uri: config.mongodb.db,
+        collection: 'mySessions',
+    },
+    (error) => {
+        console.log(`Error connecting MongoStore`, error);
+    },
+);
+
+// Create Mongo Store for Spotify session management
+store.on('error', (error) => {
+    console.log(`MongoStore error: ${error}`);
+});
 
 // Setup app
 app.set('port', (config.port));
@@ -23,16 +39,17 @@ app.use(cors());
 app.use(methodOverride());
 app.use(session({
     secret: `${config.sessionSecret}`,
+    store: store,
     resave: false,
-    saveUninitialized: true,
-    cookie: { secure: true },
+    saveUninitialized: false,
+    cookie: {
+        maxAge: 1000 * 60 * 60 * 24 * 7, // 1 week
+    },
 }));
 
 // Initialize Passport!  Also use passport.session() middleware, to support
 // persistent login sessions (recommended).
 app.use(passport.initialize());
-app.use(passport.session());
-
 
 // Express only serves static assets in production
 if (process.env.NODE_ENV === 'production') {
@@ -66,12 +83,13 @@ app.get('/auth/spotify',
 app.get('/auth/spotify/callback',
     passport.authenticate('spotify', { failureRedirect: '/login' }),
     (req, res) => {
-        console.log('Auth Success!');
+        console.log('Auth Success! ');
 
         /**
-         * @TODO: User save should be moved into its own abstraction and (possibly) used by ./auth/passport.js to save
+         * Store User on success
+         *
+         * @TODO: User data should be parsed and stored rather than storing the entire user returned from API
          */
-        // Store user on success
         MongoClient.connect(config.mongodb.db)
             .then((db) => {
                 console.log('Successfully connected to Mongodb');
@@ -91,25 +109,9 @@ app.get('/auth/spotify/callback',
             type: 'SUCCESS',
             data: { ...req.user._json },
         });
-    });
-
-// app.get('/logout', function(req, res){
-//     req.logout();
-//     res.redirect('/');
-// });
+    },
+);
 
 app.listen(app.get('port'), () => {
     console.log(`Find the server at: http://localhost:${app.get('port')}/`); // eslint-disable-line no-console
 });
-
-//   Simple route middleware to ensure user is authenticated.
-//   Use this route middleware on any resource that needs to be protected.  If
-//   the request is authenticated (typically via a persistent login session),
-//   the request will proceed. Otherwise, the user will be redirected to the
-//   login page.
-function ensureAuthenticated(req, res, next) {
-    if (req.isAuthenticated()) {
-        return next();
-    }
-    res.redirect('/login');
-}
